@@ -35,6 +35,7 @@ def main():
         transforms.Compose([
             transforms.RandomCrop(28),
             #transforms.Resize(32),
+            transforms.RandomRotation(10),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
