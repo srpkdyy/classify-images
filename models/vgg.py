@@ -7,8 +7,9 @@ __all__ = [
 
 class VGG(nn.Module):
     def __init__(self, features, n_classes=10, init_weights=True):
+        super(VGG, self).__init__()
         self.features = features
-        self.avgpool = None
+        self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
         self.classifier = nn.Sequential(
             nn.Linear(512 * 7 * 7, 4096),
             nn.ReLU(True),
@@ -31,14 +32,14 @@ class VGG(nn.Module):
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weights, mode='fan_out', nonlinearity='relu')
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
             elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weights, 1)
+                nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
             elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weights, 0, 0.01)
+                nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
 
 
@@ -55,25 +56,25 @@ def make_layers(cfg):
             in_channels = v
     return nn.Sequential(*layers)
 
-    cfgs = {
-        '11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-        '13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-        '16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
-        '19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
-    }
+cfgs = {
+    '11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    '13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    '16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+    '19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
+}
 
-    def _vgg(cfg):
-        model = VGG(make_layers(cfgs[cfg]), **kwargs)
-        return model
+def _vgg(cfg, **kwargs):
+    model = VGG(make_layers(cfgs[cfg]), **kwargs)
+    return model
 
-    def VGG11(**kwargs):
-        return _vgg('11', **kwargs)
+def VGG11(**kwargs):
+    return _vgg('11', **kwargs)
 
-    def VGG13(**kwargs):
-        return _vgg('13', **kwargs)
+def VGG13(**kwargs):
+    return _vgg('13', **kwargs)
 
-    def VGG16(**kwargs):
-        return _vgg('16', **kwargs)
+def VGG16(**kwargs):
+    return _vgg('16', **kwargs)
 
-    def VGG19(**kwargs):
-        return _vgg('19', **kwargs)
+def VGG19(**kwargs):
+    return _vgg('19', **kwargs)
