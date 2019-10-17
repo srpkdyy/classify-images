@@ -15,13 +15,14 @@ from models import *
 def main():
     parser = argparse.ArgumentParser(description='Classify images by PyTorch')
     parser.add_argument('dataset', metavar='DIR', help='path to dataset')
-    parser.add_argument('--epochs', default=100, type=int, metavar='N')
+    parser.add_argument('-e', '--epochs', default=100, type=int, metavar='N')
     parser.add_argument('-b', '--batch-size', default=128, type=int, metavar='N')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N')
     parser.add_argument('--lr', default=0.1, type=float, metavar='LR')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M')
     parser.add_argument('-wd', '--weight-decay', default=1e-4, type=float, metavar='W')
     parser.add_argument('--resume', default='', type=str, metavar='PATH')
+    parser.add_argument('--adjust-interval', default=30, type=int)
     args = parser.parse_args()
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -33,7 +34,7 @@ def main():
     train_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'train'),
         transforms.Compose([
-            transforms.RandomCrop(30),
+            #transforms.RandomCrop(28),
             #transforms.Resize(32),
             transforms.RandomRotation(10),
             transforms.RandomHorizontalFlip(),
@@ -95,7 +96,7 @@ def main():
         model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay
     )
 
-    print('==> Training model..')
+    print('==> Training model')
     start = time.time()
     for epoch in range(args.epochs):
         adjust_learning_rate(optimizer, epoch, args)
@@ -157,7 +158,7 @@ def validate(model, val_loader, criterion, device, start):
 
 
 def adjust_learning_rate(optimizer, epoch, args):
-    lr = args.lr * (0.1 ** (epoch // 30))
+    lr = args.lr * (0.1 ** (epoch // args.adjust_interval))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
