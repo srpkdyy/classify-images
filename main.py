@@ -15,7 +15,7 @@ from models import *
 def main():
     parser = argparse.ArgumentParser(description='Classify images by PyTorch')
     parser.add_argument('dataset', metavar='DIR', help='path to dataset')
-    parser.add_argument('--epochs', default=200, type=int, metavar='N')
+    parser.add_argument('--epochs', default=100, type=int, metavar='N')
     parser.add_argument('-b', '--batch-size', default=128, type=int, metavar='N')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N')
     parser.add_argument('--lr', default=0.1, type=float, metavar='LR')
@@ -33,7 +33,7 @@ def main():
     train_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'train'),
         transforms.Compose([
-            transforms.RandomCrop(28),
+            transforms.RandomCrop(30),
             #transforms.Resize(32),
             transforms.RandomRotation(10),
             transforms.RandomHorizontalFlip(),
@@ -45,7 +45,7 @@ def main():
     val_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'validate'),
         transforms.Compose([
-            transforms.CenterCrop(28),
+            #transforms.CenterCrop(28),
             transforms.ToTensor(),
             normalize,
         ])
@@ -85,10 +85,9 @@ def main():
 
 
     print('==> Building model..')
-    model = VGG11()
+    model = VGG16()
     model.to(device)
     if device == 'cuda':
-        model = torch.nn.DataParallel(model)
         torch.backends.cudnn.benchmark = True
 
     criterion = nn.CrossEntropyLoss()
@@ -97,14 +96,15 @@ def main():
     )
 
     print('==> Training model..')
+    start = time.time()
     for epoch in range(args.epochs):
         adjust_learning_rate(optimizer, epoch, args)
 
-        train(model, train_loader, epoch, optimizer, criterion, device)
-        validate(model, val_loader, criterion, device)
+        train(model, train_loader, epoch, optimizer, criterion, device, start)
+        validate(model, val_loader, criterion, device, start)
 
 
-def train(model, train_loader, epoch, optimizer, criterion, device):
+def train(model, train_loader, epoch, optimizer, criterion, device, start):
     print('\nEpoch: %d' % (epoch+1))
 
     model.train()
@@ -112,7 +112,6 @@ def train(model, train_loader, epoch, optimizer, criterion, device):
     correct = 0
     total = 0
     
-    end = time.time()
     for i, (images, targets) in enumerate(train_loader):
         images, targets = images.to(device), targets.to(device)
 
@@ -128,14 +127,13 @@ def train(model, train_loader, epoch, optimizer, criterion, device):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
-        elapsed_sec = time.time() - end
-        end = time.time()
+        now = time.time()
 
-        sys.stdout.write('\rTrain: %d/%d==> Loss: %.7f | Acc: %.3f%% (%d/%d)'
-            % (i+1, len(train_loader), train_loss/(i+1), 100.*correct/total, correct, total))
+        sys.stdout.write('\rTrain: %d/%d==> Loss: %.6f | Acc: %.2f%% (%d/%d) | Elapsed: %.2fsec'
+            % (i+1, len(train_loader), train_loss/(i+1), 100.*correct/total, correct, total, now-start))
 
 
-def validate(model, val_loader, criterion, device):
+def validate(model, val_loader, criterion, device, start):
     print()
     model.eval()
     val_loss = 0
@@ -154,15 +152,20 @@ def validate(model, val_loader, criterion, device):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-            sys.stdout.write('\rValidate: %d/%d==> Loss: %.7f | Acc: %.3f%% (%d/%d)'
-                % (i+1, len(val_loader), val_loss/(i+1), 100.*correct/total, correct, total))
+            now = time.time()
+            disp_progress('Validate', i, len(val_loader), val_loss, correct, total, now-start)
 
 
 def adjust_learning_rate(optimizer, epoch, args):
-    lr = args.lr * (0.1 ** (epoch // (args.epochs//4)))
+    lr = args.lr * (0.1 ** (epoch // 30))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
+
+def disp_progress(mode, i, n, loss, correct, total, elpased):
+    i += 1
+    sys.stdout.write('\r%s: %d/%d==> Loss: %.6f | Acc: %.3f%% (%d/%d) | Elapsed: %.2fsec'
+        % (mode, i, n, loss/i, 100.*correct/total, correct, total, elpased))
 
 if __name__ == '__main__':
     main()
