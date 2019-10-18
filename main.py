@@ -87,7 +87,8 @@ def main():
 
     print('==> Building model..')
     #model = VGG16() #Acc: about 73
-    model = VGG11()
+    #model = VGG11() #Acc: about 75
+    model = VGG19()
     model.to(device)
     if device == 'cuda':
         torch.backends.cudnn.benchmark = True
