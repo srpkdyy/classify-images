@@ -22,7 +22,8 @@ def main():
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M')
     parser.add_argument('-wd', '--weight-decay', default=1e-4, type=float, metavar='W')
     parser.add_argument('--resume', default='', type=str, metavar='PATH')
-    parser.add_argument('--adjust-interval', default=30, type=int)
+    parser.add_argument('-lrd', '--lr-decay', default=0.5, type=float)
+    parser.add_argument('--lrd-interval', default=40, type=int)
     args = parser.parse_args()
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -35,9 +36,8 @@ def main():
     train_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'train'),
         transforms.Compose([
-            #transforms.RandomCrop(28),
-            #transforms.Resize(32),
-            transforms.RandomRotation(30),
+            transforms.RandomCrop(84),
+            transforms.RandomRotation(10),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
@@ -47,7 +47,7 @@ def main():
     val_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'validate'),
         transforms.Compose([
-            #transforms.CenterCrop(28),
+            transforms.CenterCrop(84),
             transforms.ToTensor(),
             normalize,
         ])
@@ -162,7 +162,7 @@ def validate(model, val_loader, criterion, device, start):
 
 
 def adjust_learning_rate(optimizer, epoch, args):
-    lr = args.lr * (0.1 ** (epoch // args.adjust_interval))
+    lr = args.lr * (args.lr_decay ** (epoch // args.lrd_interval))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
