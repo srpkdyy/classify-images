@@ -23,7 +23,7 @@ def main():
     parser.add_argument('-wd', '--weight-decay', default=1e-4, type=float, metavar='W')
     parser.add_argument('--resume', default='', type=str, metavar='PATH')
     parser.add_argument('-lrd', '--lr-decay', default=0.5, type=float)
-    parser.add_argument('--lrd-interval', default=40, type=int)
+    parser.add_argument('--lrd-interval', default=30, type=int)
     args = parser.parse_args()
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -37,7 +37,7 @@ def main():
         os.path.join(args.dataset, 'train'),
         transforms.Compose([
             transforms.RandomCrop(84),
-            transforms.RandomRotation(10),
+            #transforms.RandomRotation(20),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
