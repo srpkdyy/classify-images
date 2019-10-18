@@ -37,7 +37,7 @@ def main():
         os.path.join(args.dataset, 'train'),
         transforms.Compose([
             transforms.RandomCrop(84),
-            #transforms.RandomRotation(20),
+            transforms.RandomRotation(30),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
