@@ -37,7 +37,7 @@ def main():
         transforms.Compose([
             #transforms.RandomCrop(28),
             #transforms.Resize(32),
-            transforms.RandomRotation(10),
+            transforms.RandomRotation(30),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
@@ -87,10 +87,10 @@ def main():
 
 
     print('==> Building model..')
-    #model = VGG16() #Acc: about 73
+    model = VGG16() #Acc: about 73
     #model = VGG11() #Acc: about 75
     #model = VGG19() #Acc: about 67
-    model = VGG13()
+    #model = VGG13() #ACC: about 71
     model.to(device)
     if device == 'cuda':
         torch.backends.cudnn.benchmark = True
