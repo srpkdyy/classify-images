@@ -36,8 +36,9 @@ def main():
     train_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'train'),
         transforms.Compose([
-            transforms.RandomCrop(84),
-            transforms.RandomRotation(30),
+            #transforms.RandomCrop(84),
+            transforms.RandomResizedCrop(84, scale=(0.5, 1.0)),
+            transforms.RandomRotation(15),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
