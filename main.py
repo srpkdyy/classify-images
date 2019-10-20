@@ -22,8 +22,8 @@ def main():
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M')
     parser.add_argument('-wd', '--weight-decay', default=1e-4, type=float, metavar='W')
     parser.add_argument('--resume', default='', type=str, metavar='PATH')
-    parser.add_argument('-lrd', '--lr-decay', default=0.5, type=float)
-    parser.add_argument('--lrd-interval', default=30, type=int)
+    parser.add_argument('-lrd', '--lr-decay', default=0.2, type=float)
+    parser.add_argument('-ss', '--step-size', default=30, type=int)
     args = parser.parse_args()
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -36,8 +36,8 @@ def main():
     train_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'train'),
         transforms.Compose([
-            #transforms.RandomCrop(84),
-            transforms.RandomResizedCrop(84, scale=(0.5, 1.0)),
+            transforms.RandomCrop(84),
+            #transforms.RandomResizedCrop(96, scale=(0.5, 1.0)),
             transforms.RandomRotation(15),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -88,26 +88,29 @@ def main():
 
 
     print('==> Building model..')
-    model = VGG16() #Acc: about 73
-    #model = VGG11() #Acc: about 75
-    #model = VGG19() #Acc: about 67
-    #model = VGG13() #ACC: about 71
+    #model = VGG11()
+    #model = VGG13()
+    model = VGG16()
+    #model = VGG19()
+    #model = CNN()
     model.to(device)
     if device == 'cuda':
+        model = nn.DataParallel(model)
         torch.backends.cudnn.benchmark = True
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(
         model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay
     )
+    scheduler = optim.lr_scheduler.StepLR(optimizer, args.step_size, args.lr_decay)
 
     print('==> Training model')
     start = time.time()
     for epoch in range(args.epochs):
-        adjust_learning_rate(optimizer, epoch, args)
-
         train(model, train_loader, epoch, optimizer, criterion, device, start)
         validate(model, val_loader, criterion, device, start)
+
+        scheduler.step()
 
 
 def train(model, train_loader, epoch, optimizer, criterion, device, start):
@@ -160,12 +163,6 @@ def validate(model, val_loader, criterion, device, start):
 
             now = time.time()
             disp_progress('Validate', i, len(val_loader), val_loss, correct, total, now-start)
-
-
-def adjust_learning_rate(optimizer, epoch, args):
-    lr = args.lr * (args.lr_decay ** (epoch // args.lrd_interval))
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
 
 
 def disp_progress(mode, i, n, loss, correct, total, elpased):
