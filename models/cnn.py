@@ -14,7 +14,7 @@ def conv3x3(in_planes, out_planes, stride=1, groups=1):
 class ConvBlock(nn.Module):
     def __init__(self, in_planes, out_planes, groups=4):
         super(ConvBlock, self).__init__()
-        c = in_planes / groups
+        c = in_planes // groups
         self.conv1 = conv1x1(in_planes, c)
         self.conv2_1 = conv3x3(c, c)
         self.conv2_2 = conv3x3(c, c)
@@ -28,10 +28,12 @@ class ConvBlock(nn.Module):
     def forward(self, x):
         x = self.conv1(x)
 
+        #x = self.conv2_1(x)
         x1 = self.conv3(self.conv2_1(x))
         x2 = self.conv3(self.conv2_2(x))
         x3 = self.conv3(self.conv2_3(x))
         x4 = self.conv3(self.conv2_4(x))
+        #x = self.conv3(x)
 
         x = x1 + x2 + x3 + x4
         x = self.bn(x)
@@ -53,9 +55,10 @@ class CNN(nn.Module):
         self.conv5 = ConvBlock(256, 512)
         self.conv6 = ConvBlock(512, 512)
         self.conv7 = ConvBlock(512, 512)
-        self.conv8 = ConvBlock(512, n_classes)
+        self.conv8 = ConvBlock(512, 512)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.classify = nn.Linear(512, 10)
 
 
     def forward(self, x):
@@ -74,5 +77,6 @@ class CNN(nn.Module):
         x = self.conv8(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
+        x = self.classify(x)
         return x
 
