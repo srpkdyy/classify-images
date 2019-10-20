@@ -3,11 +3,7 @@ import sys
 import random
 import shutil
 import argparse
-
-
-n_all_files = 0
-n_moved_file = 0
-
+from . import utils
 
 def setup():
     parser = argparse.ArgumentParser()
@@ -33,8 +29,6 @@ def setup():
     print('==> Getting dataset information..')
     ds_info = get_dataset_info(os.path.join(args.dataset_dir, args.train_master))
 
-    global n_all_files
-    n_all_files = len(ds_info)
 
     for file_name, label in ds_info:
         label_div[label].append([file_name, label])
@@ -79,19 +73,6 @@ def get_dataset_info(master_file, start_line=1):
                 ds_info.append(line.split())
 
     return ds_info
-
-
-def move_files(dataset, in_dir, out_dir):
-    global n_all_files
-    global n_moved_file
-
-    for file_name, label in dataset:
-        save_path = os.path.join(out_dir, label)
-        os.makedirs(save_path, exist_ok=True)
-        shutil.move(os.path.join(in_dir, file_name), save_path)
-
-        n_moved_file += 1
-        sys.stdout.write('\rMoved: %d/%d' % (n_moved_file, n_all_files))
 
 
 if __name__ == '__main__':
