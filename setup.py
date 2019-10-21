@@ -4,7 +4,7 @@ import random
 import shutil
 import argparse
 
-import utils
+from utils import move_files
 
 
 def setup():
