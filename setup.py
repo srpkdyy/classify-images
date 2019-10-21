@@ -3,7 +3,9 @@ import sys
 import random
 import shutil
 import argparse
-from . import utils
+
+import utils
+
 
 def setup():
     parser = argparse.ArgumentParser()
