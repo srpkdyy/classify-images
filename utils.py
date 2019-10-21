@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import torch
 import torch.nn as nn
@@ -27,3 +28,4 @@ def move_files(dataset, in_dir, out_dir):
 
         n_moved_file += 1
         sys.stdout.write('\rMoved: %d/%d' % (n_moved_file, n_all_files))
+
