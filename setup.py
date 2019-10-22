@@ -48,6 +48,8 @@ def setup():
     move_files(train_ds, nolabel_dir, train_dir)
     move_files(validate_ds, nolabel_dir, validate_dir)
 
+    os.makedirs('weights', exist_ok=True)
+
 
 def get_all_labels(master_file, start_line=1):
     labels = []
