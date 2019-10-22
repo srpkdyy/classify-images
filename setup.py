@@ -3,7 +3,9 @@ import sys
 import random
 import shutil
 import argparse
-from . import utils
+
+from utils import move_files
+
 
 def setup():
     parser = argparse.ArgumentParser()

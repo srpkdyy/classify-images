@@ -1,3 +1,6 @@
+import os
+import sys
+import shutil
 import torch
 import torch.nn as nn
 import torch.nn.init as init
@@ -34,3 +37,4 @@ class ImageFolderWithPath(datasets.ImageFolder):
         path = self.imgs[index][0]
         tuple_with_path = (original_tuple + (path,))
         return tuple_with_path
+ 
