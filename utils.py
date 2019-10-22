@@ -4,6 +4,7 @@ import shutil
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+from torchvision import datasets
 
 
 def init_params(model):
@@ -29,3 +30,11 @@ def move_files(dataset, in_dir, out_dir):
         n_moved_file += 1
         sys.stdout.write('\rMoved: %d/%d' % (n_moved_file, n_all_files))
 
+
+class ImageFolderWithPath(datasets.ImageFolder):
+    def __getitem__(self, index):
+        original_tuple = super(ImageFolderWithPath, self).__getitem__(index)
+        path = self.imgs[index][0]
+        tuple_with_path = (original_tuple + (path,))
+        return tuple_with_path
+ 

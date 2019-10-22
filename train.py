@@ -1,5 +1,6 @@
 import os
 import sys
+import copy
 import time
 import numpy
 import matplotlib.pyplot as plt
@@ -22,6 +23,7 @@ def main():
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M')
     parser.add_argument('-wd', '--weight-decay', default=1e-4, type=float, metavar='W')
     parser.add_argument('--resume', default='', type=str, metavar='PATH')
+    parser.add_argument('--save', action='store_true')
     parser.add_argument('-lrd', '--lr-decay', default=0.2, type=float)
     parser.add_argument('-ss', '--step-size', default=30, type=int)
     args = parser.parse_args()
@@ -72,10 +74,10 @@ def main():
 
     print('==> Building model..')
     #model = VGG11()
-    #model = VGG13()
+    model = VGG13()
     #model = VGG16()
     #model = VGG19()
-    model = CNN()
+    #model = CNN()
     model.to(device)
     if device == 'cuda':
         model = nn.DataParallel(model)
@@ -89,11 +91,28 @@ def main():
 
     print('==> Training model')
     start = time.time()
+    best_cfg = None
+    if args.save:
+        best_cfg = {
+            'loss': float('inf'),
+            'acc':0.,
+            'model': None,
+        }
     for epoch in range(args.epochs):
         train(model, train_loader, epoch, optimizer, criterion, device, start)
-        validate(model, val_loader, criterion, device, start)
+        validate(model, val_loader, criterion, device, start, best_cfg)
 
         scheduler.step()
+
+    if args.save:
+        print('\n==> Save model')
+        print('    Loss: %f' % best_cfg['loss'])
+        print('    Acc: %f' % best_cfg['acc'])
+
+        torch.save(
+            best_cfg['model'],
+            os.path.join('weights', 'save{}.pth'.format(int(best_cfg['acc']*1000)))
+        )
 
 
 def train(model, train_loader, epoch, optimizer, criterion, device, start):
@@ -125,7 +144,7 @@ def train(model, train_loader, epoch, optimizer, criterion, device, start):
             % (i+1, len(train_loader), train_loss/(i+1), 100.*correct/total, correct, total, now-start))
 
 
-def validate(model, val_loader, criterion, device, start):
+def validate(model, val_loader, criterion, device, start, best_cfg):
     print()
     model.eval()
     val_loss = 0
@@ -146,6 +165,15 @@ def validate(model, val_loader, criterion, device, start):
 
             now = time.time()
             disp_progress('Validate', i, len(val_loader), val_loss, correct, total, now-start)
+
+    if best_cfg is not None and correct/total > best_cfg['acc']:
+        sys.stdout.write(' --> Update save model data')
+        best_cfg['loss'] = val_loss
+        best_cfg['acc'] = correct/total
+        best_cfg['model'] = copy.deepcopy(model)
+
+
+
 
 
 def disp_progress(mode, i, n, loss, correct, total, elpased):
