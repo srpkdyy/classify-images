@@ -24,7 +24,7 @@ def main():
     parser.add_argument('-wd', '--weight-decay', default=1e-4, type=float, metavar='W')
     parser.add_argument('--resume', default='', type=str, metavar='PATH')
     parser.add_argument('--save', action='store_true')
-    parser.add_argument('-lrd', '--lr-decay', default=0.2, type=float)
+    parser.add_argument('-lrd', '--lr-decay', default=0.1, type=float)
     parser.add_argument('-ss', '--step-size', default=30, type=int)
     args = parser.parse_args()
     
@@ -74,8 +74,8 @@ def main():
 
     print('==> Building model..')
     #model = VGG11()
-    model = VGG13()
-    #model = VGG16()
+    #model = VGG13()
+    model = VGG16()
     #model = VGG19()
     #model = CNN()
     model.to(device)
@@ -111,7 +111,7 @@ def main():
 
         torch.save(
             best_cfg['model'],
-            os.path.join('weights', 'save{}.pth'.format(int(best_cfg['acc']*1000)))
+            os.path.join('weights', 'acc{}.pth'.format(int(best_cfg['acc']*1000)))
         )
 
 
@@ -167,7 +167,7 @@ def validate(model, val_loader, criterion, device, start, best_cfg):
             disp_progress('Validate', i, len(val_loader), val_loss, correct, total, now-start)
 
     if best_cfg is not None and correct/total > best_cfg['acc']:
-        sys.stdout.write(' --> Update save model data')
+        sys.stdout.write(' --> Update check point')
         best_cfg['loss'] = val_loss
         best_cfg['acc'] = correct/total
         best_cfg['model'] = copy.deepcopy(model)

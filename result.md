@@ -45,3 +45,5 @@ only add linear ==> 0.603
 
 BraNet:
 ResNet
+
+VGG16 --lr 0.01 -b 64 -lrd 0.1 -ss 40 ==> Over 76 をマーク

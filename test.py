@@ -27,10 +27,12 @@ def main():
     test_ds = utils.ImageFolderWithPath(
         args.test_path,
         transforms.Compose([
+            transforms.CenterCrop(84),
             transforms.ToTensor(),
             normalize,
         ])
     )
+
     
     test_loader = torch.utils.data.DataLoader(
         test_ds,
