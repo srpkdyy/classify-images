@@ -75,9 +75,10 @@ def main():
     print('==> Building model..')
     #model = VGG11()
     #model = VGG13()
-    model = VGG16()
+    #model = VGG16()
     #model = VGG19()
     #model = CNN()
+    model = GAPVGG()
     model.to(device)
     if device == 'cuda':
         model = nn.DataParallel(model)

@@ -43,7 +43,9 @@ lr 0.01
 del conv8 add linear ==> 0.434
 only add linear ==> 0.603
 
-BraNet:
-ResNet
-
-VGG16 --lr 0.01 -b 64 -lrd 0.1 -ss 40 ==> Over 76 をマーク
+## Use GAP
+VGG16 --lr 0.01 -b 64 -lrd 0.1 -ss 40 ==> ACC Over 76 
+GAPVGG with above configs ==> Acc: 73.3
+batch 128 about 71
+GAPVGG --lr 0.01 -b 64 -lrd 0.1 -ss 60 -e 150 acc:74.1
+GAPVGG --lr 0.1 -b 128 -lrd 0.1 -ss 30 ==> acc: 70.1
