@@ -8,7 +8,7 @@ import argparse
 import torch
 from torch import nn, optim
 from torch.utils.data import TensorDataset, DataLoader
-from torchvision import datasets, transforms
+from torchvision import datasets, transforms, models
 
 from models import *
     
@@ -33,13 +33,14 @@ def main():
     
     
     print('==> Preparing dataset..')
+    image_size = 224
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     
     train_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'train'),
         transforms.Compose([
-            transforms.RandomCrop(84),
-            #transforms.RandomResizedCrop(96, scale=(0.5, 1.0)),
+            #transforms.RandomCrop(84),
+            transforms.RandomResizedCrop(image_size, scale=(0.5, 1.0)),
             transforms.RandomRotation(15),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -50,7 +51,8 @@ def main():
     val_ds = datasets.ImageFolder(
         os.path.join(args.dataset, 'validate'),
         transforms.Compose([
-            transforms.CenterCrop(84),
+            #transforms.CenterCrop(84),
+            transforms.Resize(image_size),
             transforms.ToTensor(),
             normalize,
         ])
@@ -78,15 +80,25 @@ def main():
     #model = VGG16()
     #model = VGG19()
     #model = CNN()
-    model = GAPVGG()
+    #model = GAPVGG()
+    model = models.vgg16(pretrained=True)
+    model.classifier[6] = nn.Linear(in_features=4096, out_features=10)
     model.to(device)
     if device == 'cuda':
         model = nn.DataParallel(model)
         torch.backends.cudnn.benchmark = True
 
+
     criterion = nn.CrossEntropyLoss()
+    params_to_update = []
+    for name, param in model.named_parameters():
+        if name in ['module.classifier.6.weight', 'module.classifier.6.bias']:
+            param.requires_grad = True
+            params_to_update.append(param)
+        else:
+            param.requires_grad = False
     optimizer = optim.SGD(
-        model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay
+        params_to_update, lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay
     )
     scheduler = optim.lr_scheduler.StepLR(optimizer, args.step_size, gamma=args.lr_decay)
 

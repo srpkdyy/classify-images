@@ -27,7 +27,8 @@ def main():
     test_ds = utils.ImageFolderWithPath(
         args.test_path,
         transforms.Compose([
-            transforms.CenterCrop(84),
+            transforms.Resize(224),
+            #transforms.CenterCrop(84),
             transforms.ToTensor(),
             normalize,
         ])
